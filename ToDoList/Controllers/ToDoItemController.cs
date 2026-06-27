@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using ToDoList.Models;
 using ToDoList.Data;
 
-public class ToDoItemsController : Controller
+public class ToDoItemController : Controller
 {
     private readonly ApplicationDbContext _context;
 
-    public ToDoItemsController(ApplicationDbContext context)
+    public ToDoItemController(ApplicationDbContext context)
     {
         _context = context;
     }
@@ -48,7 +48,7 @@ public class ToDoItemsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Title,TimeDue,IsCompleted")] ToDoItem todoitem)
+    public async Task<IActionResult> Create([Bind("Id,Title,TimeDue,IsCompleted,Details")] ToDoItem todoitem)
     {
         if (ModelState.IsValid)
         {
@@ -80,7 +80,7 @@ public class ToDoItemsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Title,TimeDue,IsCompleted")] ToDoItem todoitem)
+    public async Task<IActionResult> Edit(int? id, [Bind("Id,Title,TimeDue,IsCompleted,Details")] ToDoItem todoitem)
     {
         if (id != todoitem.Id)
         {

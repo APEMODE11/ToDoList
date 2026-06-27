@@ -9,7 +9,7 @@
 <div>
     <h4>ToDoItem</h4>
     <hr />
-    <dl class="row">
+    <dl>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Title)
         </dt>
@@ -17,6 +17,15 @@
             @Html.DisplayFor(model => model.Title)
         </dd>
     </dl>
+    <dl>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Details)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Details)
+        </dd>
+    </dl>
+    <dl>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.TimeDue)
         </dt>
@@ -24,6 +33,7 @@
             @Html.DisplayFor(model => model.TimeDue)
         </dd>
     </dl>
+    <dl>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.IsCompleted)
         </dt>

@@ -6,6 +6,7 @@
         public String Title { get; set; }
         public DateTime TimeDue { get; set; }
         public bool IsCompleted { get; set; }
+        public String Details { get; set; }
 
         public ToDoItem()
         {
