@@ -1,8 +1,10 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ToDoList.Models;
+using System.Diagnostics;
+using System.Security.Claims;
 using ToDoList.Data;
+using ToDoList.Models;
 
 public class ToDoItemController : Controller
 {
@@ -16,19 +18,22 @@ public class ToDoItemController : Controller
     // GET: TODOITEMS
     public async Task<IActionResult> Index()    
     {
-        return View(await _context.ToDoItem.ToListAsync());
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Filtrování poznámek jen pro aktuálního uživatele
+        var userNotes = await _context.ToDoItem
+                                      .Where(i => i.UserId == userId)
+                                      .ToListAsync();
+
+        return View(userNotes);
     }
 
     // GET: TODOITEMS/Details/5
     public async Task<IActionResult> Details(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var todoitem = await _context.ToDoItem.FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
 
-        var todoitem = await _context.ToDoItem
-            .FirstOrDefaultAsync(m => m.Id == id);
         if (todoitem == null)
         {
             return NotFound();
@@ -50,8 +55,12 @@ public class ToDoItemController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Title,TimeDue,IsCompleted,Details")] ToDoItem todoitem)
     {
+
         if (ModelState.IsValid)
         {
+            todoitem.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            todoitem.UserId = userId; // Přiřazení ID k poznámce
             _context.Add(todoitem);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -89,22 +98,26 @@ public class ToDoItemController : Controller
 
         if (ModelState.IsValid)
         {
-            try
+            // 1. Najdeme existující záznam v databázi
+            var existingItem = await _context.ToDoItem
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            // 2. Bezpečnostní kontrola: Musí patřit přihlášenému uživateli
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (existingItem == null || existingItem.UserId != currentUserId)
             {
-                _context.Update(todoitem);
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ToDoItemExists(todoitem.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+
+            // 3. Přepíšeme pouze povolená pole (Title, Content atd.)
+            existingItem.Title = todoitem.Title;
+            existingItem.Details = todoitem.Details;
+            existingItem.TimeDue = todoitem.TimeDue;
+            existingItem.IsCompleted = todoitem.IsCompleted;
+
+            // 4. UserId se vůbec nedotkneme, zůstane takové, jaké bylo!
+
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
         return View(todoitem);
