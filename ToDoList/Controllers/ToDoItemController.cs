@@ -1,11 +1,12 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Security.Claims;
 using ToDoList.Data;
 using ToDoList.Models;
-
+[Authorize]
 public class ToDoItemController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -55,7 +56,6 @@ public class ToDoItemController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Title,TimeDue,IsCompleted,Details")] ToDoItem todoitem)
     {
-
         if (ModelState.IsValid)
         {
             todoitem.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -160,4 +160,19 @@ public class ToDoItemController : Controller
     {
         return _context.ToDoItem.Any(e => e.Id == id);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> ToggleComplete(int id)
+    {
+        var item = await _context.ToDoItem.FindAsync(id);
+        if (item == null) return NotFound();
+
+        item.IsCompleted = !item.IsCompleted;
+        // Zde nastavíme čas, aby se za 24h schoval
+        item.TimeCompleted = item.IsCompleted ? DateTime.UtcNow : null;
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction("Index"); // Přesměrování zpět na seznam
+    }
 }
+

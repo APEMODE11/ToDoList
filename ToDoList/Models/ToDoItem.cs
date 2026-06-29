@@ -11,7 +11,7 @@ namespace ToDoList.Models
         public String Details { get; set; }
         public String? UserId { get; set; }
         public virtual IdentityUser? User { get; set; }
-
+        public DateTime? TimeCompleted { get; set; }
         public ToDoItem()
         {
 
